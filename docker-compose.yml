@@ -1,36 +1,15 @@
-version: '3.8'
-
-services:
-  mysql:
-    image: mysql:8
-    container_name: todo-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ak@papaji
-      MYSQL_DATABASE: todo_db
-      MYSQL_USER: todo_user
-      MYSQL_PASSWORD: todo_pass
-    ports:
-      - "3307:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      retries: 10
-      timeout: 5s
-
-  app:
-    build: .
-    container_name: todo-app
-    ports:
-      - "8082:8082"
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/todo_db
-      SPRING_DATASOURCE_USERNAME: todo_user
-      SPRING_DATASOURCE_PASSWORD: todo_pass
-
-volumes:
-  mysql-data:
+app:
+  build: .
+  container_name: todo-app
+  ports:
+    - "8082:8080" # Mapping host 8082 to container 8080 (default Spring port)
+  depends_on:
+    mysql:
+      condition: service_healthy
+      environment:
+        # Change the URL to PostgreSQL format
+        - SPRING_DATASOURCE_URL=jdbc:postgresql://<RENDER_INTERNAL_HOSTNAME>:5432/<DATABASE_NAME>
+        - SPRING_DATASOURCE_USERNAME=<RENDER_USER>
+        - SPRING_DATASOURCE_PASSWORD=<RENDER_PASSWORD>
+        # You can also add this to ensure Hibernate uses the right dialect
+        - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
